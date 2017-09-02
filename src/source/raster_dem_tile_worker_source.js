@@ -1,16 +1,5 @@
-// @flow
-
 const WorkerTile = require('./worker_tile');
 const {DEMData} = require('../data/dem_data');
-
-import type {
-    WorkerSource,
-    WorkerRasterTileParameters,
-    WorkerTileCallback
-} from '../source/worker_source';
-
-import type Actor from '../util/actor';
-import type StyleLayerIndex from '../style/style_layer_index';
 
 
 /**
@@ -19,13 +8,9 @@ import type StyleLayerIndex from '../style/style_layer_index';
  * @private
  */
 
-class RasterDEMTileWorkerSource implements WorkerSource {
-    actor: Actor;
-    layerIndex: StyleLayerIndex;
-    loading: { [string]: { [string]: WorkerTile } };
-    loaded: { [string]: { [string]: WorkerTile } };
+class RasterDEMTileWorkerSource {
 
-    constructor(actor: Actor, layerIndex: StyleLayerIndex) {
+    constructor(actor, layerIndex) {
         this.actor = actor;
         this.layerIndex = layerIndex;
         this.loading = {};
@@ -35,7 +20,7 @@ class RasterDEMTileWorkerSource implements WorkerSource {
     /**
      * Implements {@link WorkerSource#loadTile}.
      */
-    loadTile(params: WorkerRasterTileParameters, callback: WorkerTileCallback) {
+    loadTile(params, callback) {
         const source = params.source,
             uid = params.uid;
 
@@ -43,11 +28,29 @@ class RasterDEMTileWorkerSource implements WorkerSource {
             this.loading[source] = {};
 
         const dem = new DEMData(uid);
+        this.loading[source][uid] = dem;
         dem.loadFromImage(params.rawImageData);
         const transferrables = [];
+
+        this.loaded[source] = this.loaded[source] || {};
+        this.loaded[source][uid] = dem;
         callback(null, dem.serialize(transferrables), transferrables);
     }
 
+    /**
+     * Implements {@link WorkerSource#removeTile}.
+     *
+     * @param params
+     * @param params.source The id of the source for which we're loading this tile.
+     * @param params.uid The UID for this tile.
+     */
+    removeTile(params) {
+        const loaded = this.loaded[params.source],
+            uid = params.uid;
+        if (loaded && loaded[uid]) {
+            delete loaded[uid];
+        }
+    }
 }
 
 module.exports = RasterDEMTileWorkerSource;

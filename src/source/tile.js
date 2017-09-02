@@ -20,6 +20,7 @@ import type StyleLayer from '../style/style_layer';
 import type TileCoord from './tile_coord';
 import type {WorkerTileResult} from './worker_source';
 import type Point from '@mapbox/point-geometry';
+import type {DEMData} from '../data/dem_data';
 import type {RGBAImage, AlphaImage} from '../util/image';
 
 export type TileState =
@@ -68,6 +69,8 @@ class Tile {
     workerID: number;
     vtLayers: {[string]: VectorTileLayer};
 
+    neighboringTiles: ?Object;
+    dem: ?DEMData;
     aborted: ?boolean;
     request: any;
     texture: any;
@@ -208,6 +211,12 @@ class Tile {
         this.collisionBoxArray = null;
         this.collisionTile = null;
         this.featureIndex = null;
+        this.state = 'unloaded';
+    }
+
+    unloadDEMData() {
+        this.dem = null;
+        this.neighboringTiles = null;
         this.state = 'unloaded';
     }
 
