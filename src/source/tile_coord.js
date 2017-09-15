@@ -106,7 +106,7 @@ class TileCoord {
         } else {
             return new TileCoord(targetZ, this.x << (targetZ - this.z), this.y << (targetZ - this.z), this.w); // child
         }
-	}
+    }
 
     isChildOf(coord: TileCoord, sourceMaxZoom: number) {
         const parentZ = Math.min(sourceMaxZoom, coord.z);
