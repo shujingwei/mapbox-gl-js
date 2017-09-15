@@ -56,7 +56,7 @@ class RasterDEMTileSource extends RasterTileSource implements Source {
                 delete (img: any).cacheControl;
                 delete (img: any).expires;
 
-                const rawImageData = {data: browser.getImageData(img), width: img.width, height: img.height};
+                const rawImageData = browser.getImageData(img);
 
                 const overscaling = tile.coord.z > this.maxzoom ? Math.pow(2, tile.coord.z - this.maxzoom) : 1;
 

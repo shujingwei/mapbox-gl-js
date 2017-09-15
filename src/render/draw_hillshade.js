@@ -69,7 +69,7 @@ class HillshadeTexture {
 
         // this is needed because SpriteAtlas sets this value to true, which causes the 0 alpha values that we pass to
         // the terrain_prepare shaders to 0 out all values and render the texture blank.
-        gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, false: any);
+        gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, (false: any));
 
         gl.bindTexture(gl.TEXTURE_2D, tile.texture);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
