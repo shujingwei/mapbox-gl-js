@@ -1,18 +1,20 @@
-const WorkerTile = require('./worker_tile');
+// @flow
+
 const {DEMData} = require('../data/dem_data');
+import type {SerializedDEMData} from '../data/dem_data';
+import type Actor from '../util/actor';
+import type {TileParameters} from './worker_source';
+import type {RGBAImage} from '../util/image';
+import type TileCoord from './tile_coord';
 
-
-/**
- * The {@link WorkerSource} implementation that supports {@link RasterDEMTileSource}.
- *
- * @private
- */
 
 class RasterDEMTileWorkerSource {
+    actor: Actor;
+    loading: {[string]: {[string]: DEMData}};
+    loaded: {[string]: {[string]: DEMData}};
 
-    constructor(actor, layerIndex) {
+    constructor(actor: Actor) {
         this.actor = actor;
-        this.layerIndex = layerIndex;
         this.loading = {};
         this.loaded = {};
     }
@@ -20,7 +22,11 @@ class RasterDEMTileWorkerSource {
     /**
      * Implements {@link WorkerSource#loadTile}.
      */
-    loadTile(params, callback) {
+    loadTile(params: TileParameters & {
+                rawImageData: RGBAImage,
+                coord: TileCoord,
+                type: string
+            }, callback: (err: ?Error, result: ?SerializedDEMData, transferrables: ?Array<Transferable>) => void) {
         const source = params.source,
             uid = params.uid;
 
@@ -45,7 +51,7 @@ class RasterDEMTileWorkerSource {
      * @param params.source The id of the source for which we're loading this tile.
      * @param params.uid The UID for this tile.
      */
-    removeTile(params) {
+    removeTile(params: TileParameters) {
         const loaded = this.loaded[params.source],
             uid = params.uid;
         if (loaded && loaded[uid]) {
