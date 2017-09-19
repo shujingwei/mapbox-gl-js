@@ -5,12 +5,7 @@
 const versionColor = d3.scaleOrdinal(d3.schemeCategory10);
 versionColor(0); // Skip blue -- too similar to link color.
 
-const formatMillisecond = d3.timeFormat(".%L");
-const formatSecond = d3.timeFormat(":%S");
-
-function formatSample(sample) {
-  return (d3.timeSecond(sample) < sample ? formatMillisecond : formatSecond)(sample);
-}
+const formatSample = d3.format(".3r");
 
 class Plot extends React.Component {
     render() {
@@ -81,7 +76,7 @@ class DensityPlot extends Plot {
             .attr("x", width)
             .attr("y", -6)
             .style("text-anchor", "end")
-            .text("Time");
+            .text("Time (ms)");
 
         enter
             .append("g")
@@ -166,7 +161,7 @@ class RegressionPlot extends Plot {
             .attr("y", 6)
             .attr("dy", ".71em")
             .style("text-anchor", "end")
-            .text("Time");
+            .text("Time (ms)");
 
         const version = svg.selectAll(".version")
             .data(versions);
@@ -199,6 +194,21 @@ class RegressionPlot extends Plot {
     }
 }
 
+class BenchmarkStatistic extends React.Component {
+    render() {
+        switch (this.props.status) {
+            case 'waiting':
+                return <p className="quiet"></p>;
+            case 'running':
+                return <p>Running...</p>;
+            case 'error':
+                return <p>{this.props.error.message}</p>;
+            default:
+                return <p>{this.props.statistic(this.props)}</p>;
+        }
+    }
+}
+
 class BenchmarkRow extends React.Component {
     render() {
         const ended = this.props.versions.find(version => version.status === 'ended');
@@ -206,18 +216,36 @@ class BenchmarkRow extends React.Component {
             <div className="col12 clearfix space-bottom">
                 <h2 className="col4"><a href={`#${this.props.name}`} onClick={this.reload}>{this.props.name}</a></h2>
                 <div className="col8">
-                    {this.props.versions.map(version =>
-                        <div key={version.name} className="col6">
-                            <h3 style={{color: versionColor(version.name)}}>{version.name}</h3>
-                            <p className={version.status === 'waiting' ? 'quiet' : ''}>
-                                {version.status === 'running' ? 'Running...' : version.message}
-                            </p>
-                        </div>
-                    )}
+                    <table className="fixed">
+                        <tr><th></th>{this.props.versions.map(version => <th style={{color: versionColor(version.name)}} key={version.name}>{version.name}</th>)}</tr>
+                        {this.renderStatistic('R² Slope / Correlation',
+                            (version) => `${formatSample(version.regression.slope)} ms / ${version.regression.correlation.toFixed(3)} ${
+                                version.regression.correlation < 0.9 ? '\u2620\uFE0F' :
+                                version.regression.correlation < 0.99 ? '\u26A0\uFE0F' : ''}`)}
+                        {this.renderStatistic('Mean',
+                            (version) => `${formatSample(d3.mean(version.samples))} ms`)}
+                        {this.renderStatistic('Minimum',
+                            (version) => `${formatSample(d3.min(version.samples))} ms`)}
+                        {this.renderStatistic('Variance',
+                            (version) => `${formatSample(d3.variance(version.samples))} ms`)}
+                        {this.renderStatistic('Deviation',
+                            (version) => `${formatSample(d3.deviation(version.samples))} ms`)}
+                    </table>
                     {ended && <DensityPlot versions={this.props.versions}/>}
                     {ended && <RegressionPlot versions={this.props.versions}/>}
                 </div>
             </div>
+        );
+    }
+
+    renderStatistic(title, statistic) {
+        return (
+            <tr>
+                <th>{title}</th>
+                {this.props.versions.map(version =>
+                    <td key={version.name}><BenchmarkStatistic statistic={statistic} {...version}/></td>
+                )}
+            </tr>
         );
     }
 
@@ -268,15 +296,13 @@ for (const name in window.mapboxglBenchmarks) {
             return window.mapboxglBenchmarks[name][ver].run()
                 .then(samples => {
                     version.status = 'ended';
-                    version.message = `${d3.mean(samples).toFixed(0)}ms`;
                     version.samples = samples;
                     version.regression = leastSquaresRegression(regression(samples));
-                    version.message = `${version.regression.slope.toFixed(0)}ms`;
                     update();
                 })
                 .catch(error => {
                     version.status = 'errored';
-                    version.message = error.message;
+                    version.error = error;
                     update();
                 });
         });
