@@ -5,6 +5,13 @@
 const versionColor = d3.scaleOrdinal(d3.schemeCategory10);
 versionColor(0); // Skip blue -- too similar to link color.
 
+const formatMillisecond = d3.timeFormat(".%L");
+const formatSecond = d3.timeFormat(":%S");
+
+function formatSample(sample) {
+  return (d3.timeSecond(sample) < sample ? formatMillisecond : formatSecond)(sample);
+}
+
 class Plot extends React.Component {
     render() {
         return <svg width="100%" ref={node => this.node = node}></svg>;
@@ -39,7 +46,7 @@ class DensityPlot extends Plot {
             width = this.node.clientWidth - margin.left - margin.right,
             height = 200 - margin.top - margin.bottom;
 
-        const x = d3.scaleTime()
+        const x = d3.scaleLinear()
             .domain([0, d3.max(Array.prototype.concat.apply([], this.props.versions.map(version => version.samples)))])
             .range([0, width])
             .nice();
@@ -68,7 +75,7 @@ class DensityPlot extends Plot {
         enter
             .append("g")
             .attr("transform", `translate(0,${height})`)
-            .call(d3.axisBottom(x))
+            .call(d3.axisBottom(x).tickFormat(formatSample))
             .append("text")
             .attr("fill", "#000")
             .attr("x", width)
@@ -119,7 +126,7 @@ class RegressionPlot extends Plot {
             .range([0, width])
             .nice();
 
-        const y = d3.scaleTime()
+        const y = d3.scaleLinear()
             .domain([0, d3.max(versions.map(version => d3.max(version.regression.data, d => d[1])))])
             .range([height, 0])
             .nice();
@@ -152,7 +159,7 @@ class RegressionPlot extends Plot {
         enter
             .append("g")
             .attr("class", "y axis")
-            .call(d3.axisLeft(y).ticks(4))
+            .call(d3.axisLeft(y).ticks(4).tickFormat(formatSample))
             .append("text")
             .attr("fill", "#000")
             .attr("transform", "rotate(-90)")
