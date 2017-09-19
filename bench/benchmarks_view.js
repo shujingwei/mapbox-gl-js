@@ -202,31 +202,23 @@ class RegressionPlot extends Plot {
 class BenchmarkRow extends React.Component {
     render() {
         const ended = this.props.versions.find(version => version.status === 'ended');
-
-        const trs = [
-            <tr key={this.props.name}>
-                <th rowspan={ended ? 3 : 1}><a href={`#${this.props.name}`} onClick={this.reload}>{this.props.name}</a></th>
-                {this.props.versions.map(version => (
-                    <td key={version.name} className={version.status === 'waiting' ? 'quiet' : ''}>{version.status === 'running' ? 'Running...' : version.message}</td>
-                ))}
-            </tr>
-        ];
-
-        if (ended) {
-            trs.push(
-                <tr key={this.props.name + '-density'}>
-                    <td colspan={this.props.versions.length}><DensityPlot versions={this.props.versions}/></td>
-                </tr>
-            );
-
-            trs.push(
-                <tr key={this.props.name + '-regression'}>
-                    <td colspan={this.props.versions.length}><RegressionPlot versions={this.props.versions}/></td>
-                </tr>
-            );
-        }
-
-        return trs;
+        return (
+            <div className="col12 clearfix space-bottom">
+                <h2 className="col4"><a href={`#${this.props.name}`} onClick={this.reload}>{this.props.name}</a></h2>
+                <div className="col8">
+                    {this.props.versions.map(version =>
+                        <div key={version.name} className="col6">
+                            <h3 style={{color: versionColor(version.name)}}>{version.name}</h3>
+                            <p className={version.status === 'waiting' ? 'quiet' : ''}>
+                                {version.status === 'running' ? 'Running...' : version.message}
+                            </p>
+                        </div>
+                    )}
+                    {ended && <DensityPlot versions={this.props.versions}/>}
+                    {ended && <RegressionPlot versions={this.props.versions}/>}
+                </div>
+            </div>
+        );
     }
 
     reload() {
@@ -237,18 +229,10 @@ class BenchmarkRow extends React.Component {
 class BenchmarksTable extends React.Component {
     render() {
         return (
-            <table style={{width: 960, margin: '2em auto'}}>
-                <caption className="space-bottom1"><h1>Benchmarks</h1></caption>
-                <thead>
-                    <tr>
-                        <th>Benchmark</th>
-                        {this.props.versions.map(version => <th key={version} style={{color: versionColor(version)}}>{version}</th>)}
-                    </tr>
-                </thead>
-                <tbody>
-                    {this.props.benchmarks.map(benchmark => <BenchmarkRow key={benchmark.name} {...benchmark}/>)}
-                </tbody>
-            </table>
+            <div style={{width: 960, margin: '2em auto'}}>
+                <h1 className="space-bottom1">Mapbox GL JS Benchmarks</h1>
+                {this.props.benchmarks.map(benchmark => <BenchmarkRow key={benchmark.name} {...benchmark}/>)}
+            </div>
         );
     }
 }
