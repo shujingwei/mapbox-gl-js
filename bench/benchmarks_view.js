@@ -100,8 +100,8 @@ class DensityPlot extends Plot {
 
 function regression(samples) {
     const result = [];
-    for (let i = 0; i < samples.length; i++) {
-        result.push([i, samples.slice(0, i).reduce(((sum, sample) => sum + sample), 0)]);
+    for (let i = 0, n = 1; i + n < samples.length; i += n, n++) {
+        result.push([n, samples.slice(i, i + n).reduce(((sum, sample) => sum + sample), 0)]);
     }
     return result;
 }
@@ -173,15 +173,17 @@ class RegressionPlot extends Plot {
         versionEnter.merge(version).selectAll("circle")
             .data(version => version.regression.data)
             .enter().append("circle")
-            .attr("r", 1)
+            .attr("r", 2)
             .attr("cx", d => x(d[0]))
             .attr("cy", d => y(d[1]));
 
         // regression line
         versionEnter.append('path')
             .attr('stroke', version => versionColor(version.name))
-            .attr('stroke-width', 2)
+            .attr('stroke-width', 1)
+            .attr('stroke-opacity', 0.5)
             .attr('class', 'regression-line');
+
         versionEnter.merge(version).selectAll('.regression-line')
             .attr('d', version => line(version.regression.data.map(d => [
                 d[0],
