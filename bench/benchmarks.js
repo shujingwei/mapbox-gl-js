@@ -13,16 +13,16 @@ function register(Benchmark) {
     window.mapboxglBenchmarks[Benchmark.name][version] = new Benchmark();
 }
 
-register(require('./benchmarks/tile_parse'));
-register(require('./benchmarks/render'));
+register(require('./benchmarks/layout'));
+register(require('./benchmarks/paint'));
 register(require('./benchmarks/map_load'));
 register(require('./benchmarks/style_load'));
 register(require('./benchmarks/geojson_setdata_large'));
 register(require('./benchmarks/geojson_setdata_small'));
+register(require('./benchmarks/query_point'));
+register(require('./benchmarks/query_box'));
 
 // register(require('./benchmarks/tile_layout_dds'));
-// register(require('./benchmarks/query_point'));
-// register(require('./benchmarks/query_box'));
 // register(require('./benchmarks/filter'));
 
 // Ensure the global worker pool is never drained. Browsers have resource limits

@@ -5,21 +5,16 @@ const createMap = require('../lib/create_map');
 
 module.exports = class MapLoad extends Benchmark {
     bench() {
-        return new Promise((resolve, reject) => {
-            const map = createMap({
-                style: {
-                    version: 8,
-                    sources: {},
-                    layers: []
-                }
-            });
+        return createMap({
+            style: {
+                version: 8,
+                sources: {},
+                layers: []
+            }
+        }).then(map => this.map = map);
+    }
 
-            map
-                .on('error', reject)
-                .on('load', () => {
-                    resolve();
-                    map.remove();
-                });
-        });
+    teardown() {
+        this.map.remove();
     }
 };

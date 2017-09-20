@@ -5,47 +5,39 @@ const createMap = require('../lib/create_map');
 
 module.exports = class GeoJSONSetDataSmall extends Benchmark {
     setup() {
-        return new Promise((resolve, reject) => {
-            this.data = {
-                'type': 'FeatureCollection',
-                'features': [{
-                    'type': 'Feature',
-                    'properties': {},
-                    'geometry': {
-                        'type': 'Point',
-                        'coordinates': [ -77.032194, 38.912753 ]
-                    }
-                }]
-            };
+        this.data = {
+            'type': 'FeatureCollection',
+            'features': [{
+                'type': 'Feature',
+                'properties': {},
+                'geometry': {
+                    'type': 'Point',
+                    'coordinates': [ -77.032194, 38.912753 ]
+                }
+            }]
+        };
 
-            this.map = createMap({
-                width: 1024,
-                height: 768,
-                zoom: 5,
-                center: [-77.032194, 38.912753],
-                style: 'mapbox://styles/mapbox/light-v9'
+        return createMap({
+            width: 1024,
+            height: 768,
+            zoom: 5,
+            center: [-77.032194, 38.912753],
+            style: 'mapbox://styles/mapbox/light-v9'
+        }).then(map => {
+            this.map = map;
+            this.map.addSource('geojson', {
+                'type': 'geojson',
+                'data': {
+                    'type': 'FeatureCollection',
+                    'features': []
+                }
             });
-
-            this.map
-                .on('error', reject)
-                .on('load', () => {
-                    this.map.addSource('geojson', {
-                        'type': 'geojson',
-                        'data': {
-                            'type': 'FeatureCollection',
-                            'features': []
-                        }
-                    });
-
-                    this.map.addLayer({
-                        'id': 'geojson-point',
-                        'source': 'geojson',
-                        'type': 'circle',
-                        'filter': ['==', '$type', 'Point']
-                    });
-
-                    resolve();
-                });
+            this.map.addLayer({
+                'id': 'geojson-point',
+                'source': 'geojson',
+                'type': 'circle',
+                'filter': ['==', '$type', 'Point']
+            });
         });
     }
 

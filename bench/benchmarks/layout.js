@@ -38,7 +38,7 @@ const coordinates = [
     new TileCoord(0, 0, 0)
 ];
 
-module.exports = class TileParsing extends Benchmark {
+module.exports = class Layout extends Benchmark {
     glyphs: Object;
     icons: Object;
     workerTile: WorkerTile;
